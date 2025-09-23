@@ -63,7 +63,6 @@ const Admin = () => {
           {/* <AlcoholConsumptionTrendChart /> */}
           {/* </div> */}
         </div>
-
         <div className="p-4">
           <RegistrationTable />
         </div>

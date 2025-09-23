@@ -326,7 +326,7 @@ export default function UserList() {
             </svg>
           </div>
           {/* Status filter */}
-          <div className="relative border border-[#E9E7FD] bg-[#2D2D2D]  rounded-lg ml-2">
+          <div className="relative border border-[#E9E7FD] bg-[#2D2D2D] rounded-lg ml-2">
             <div className="">
               <select
                 className="appearance-none text-gray-400 py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 "
@@ -399,8 +399,6 @@ export default function UserList() {
       <div className="w-full text-white px-6 py-5 bg-[#2D2D2D] rounded-[20px] shadow-[0px_2px_12px_0px_rgba(44,120,220,0.08)] ">
 
         {/* Header with Search, Status, and Date Filter Button */}
-
-
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-700">
             <thead>

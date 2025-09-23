@@ -6,6 +6,7 @@ import "./admin.css";
 import Sidebar from "@/components/Sidebar";
 import Topbar from "@/components/Topbar";
 import NotificationPage from "@/components/Notification/NotificationPage";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -65,6 +66,7 @@ export default function RootLayout({ children }) {
               <div className="p-4">{children}</div>
             )}
           </main>
+          <Toaster />
         </div>
       </body>
     </html>

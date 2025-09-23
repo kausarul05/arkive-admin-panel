@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Base API URL
-const BASE_API = "https://26b25e016c41.ngrok-free.app/api/v1";
+const BASE_API = "https://b8eec97f688a.ngrok-free.app/api/v1";
 
 // Axios instance
 const api = axios.create({
@@ -9,7 +9,7 @@ const api = axios.create({
   // headers: {
   //   "Content-Type": "application/json",
   // },
-  withCredentials: true
+  withCredentials: true,
 });
 
 // Generic API method

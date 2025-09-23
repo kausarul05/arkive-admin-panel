@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import dynamic from "next/dynamic";
 import { apiRequest } from "@/app/lib/api";
+import toast from "react-hot-toast";
 
 const JoditEditor = dynamic(() => import("jodit-react"), { ssr: false });
 
@@ -78,13 +79,45 @@ const SettingsPage = ({ onBackClick }) => {
     }
   }, [activeTab, tabContents]);
 
-  const handleSaveAndChange = () => {
-    setTabContents((prev) => ({
-      ...prev,
-      [activeTab]: { ...prev[activeTab], text: editableContent },
-    }));
-    showConfirmation(`Content for "${tabContents[activeTab].title}" saved!`);
+  // const handleSaveAndChange = () => {
+  //   setTabContents((prev) => ({
+  //     ...prev,
+  //     [activeTab]: { ...prev[activeTab], text: editableContent },
+  //   }));
+  //   showConfirmation(`Content for "${tabContents[activeTab].title}" saved!`);
+  // };
+
+  const handleSaveAndChange = async () => {
+    try {
+      
+      const typeMap = {
+        "privacy-security": "privacy_policy",
+        "terms-conditions": "terms_and_conditions",
+      };
+
+      const payload = {
+        data: {
+          type: typeMap[activeTab],
+          content: editableContent,
+        },
+      };
+
+      // PUT request 
+      await apiRequest("put", "/settings", payload);
+
+      // Local state update
+      setTabContents((prev) => ({
+        ...prev,
+        [activeTab]: { ...prev[activeTab], text: editableContent },
+      }));
+
+      toast.success(`Content for "${tabContents[activeTab].title}" updated!`);
+    } catch (error) {
+      console.error("Error updating settings:", error);
+      showConfirmation("Failed to update settings!");
+    }
   };
+
 
   const showConfirmation = (message) => {
     const confirmDialog = document.createElement("div");
@@ -102,7 +135,6 @@ const SettingsPage = ({ onBackClick }) => {
     };
   };
 
-  // console.log(settingsData)
 
   return (
     <div className="bg-black rounded-2xl min-h-screen text-white p-6 sm:p-6 lg:p-8 ">
@@ -124,10 +156,10 @@ const SettingsPage = ({ onBackClick }) => {
         <div className="md:w-full flex justify-start bg-black rounded-t-lg overflow-x-auto scrollbar-hide">
           {["privacy-security", "terms-conditions"].map((tabId) => (
             <button
-              key={tabId}
+              key={tabId} 
               className={`flex-shrink-0 px-4 py-4 text-lg font-semibold relative ${activeTab === tabId
-                  ? "text-[#DCF3FF]"
-                  : "text-gray-400 hover:text-white"
+                ? "text-[#DCF3FF]"
+                : "text-gray-400 hover:text-white"
                 }`}
               onClick={() => setActiveTab(tabId)}
             >

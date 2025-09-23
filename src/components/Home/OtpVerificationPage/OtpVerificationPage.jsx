@@ -1,10 +1,13 @@
 "use client"; // This directive is required for client-side functionality in App Router components
 
+import { apiRequest } from "@/app/lib/api";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import React, { useState, useRef, useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
 
 export default function OtpVerificationPage() {
+  const emailValue = sessionStorage.getItem("email");
   // Changed to App for default export
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
@@ -12,6 +15,7 @@ export default function OtpVerificationPage() {
   const [resendTimer, setResendTimer] = useState(60); // 60 seconds for resend
   const [canResend, setCanResend] = useState(false);
   const otpInputRefs = useRef([]);
+  const navigation = useRouter()
 
   useEffect(() => {
     let timer;
@@ -71,23 +75,24 @@ export default function OtpVerificationPage() {
     }
 
     // --- Simulate API Call for OTP verification (Replace with your actual backend call) ---
-    console.log("Attempting to verify OTP:", { enteredOtp });
+    // console.log("Attempting to verify OTP:", { enteredOtp });
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate network delay
-
-      // Simulate success or failure
-      if (enteredOtp === "123456") {
-        // Example for a successful OTP
-        toast.success(
-          "OTP Verified! Redirecting to password reset. (Simulated)"
-        );
-        // In a real app, redirect to a password reset page
-        window.location.href = "/set-new-password";
-      } else {
-        setError("Invalid OTP. Please try again. (Simulated)");
-        toast.error("Invalid OTP. (Simulated)");
+      const payload = {
+        "data": {
+          email: emailValue,
+          otp: enteredOtp
+        }
       }
+      // console.log(payload)
+      const verifyOTP = await apiRequest("POST", "/auth/verify_otp", payload)
+
+      if (verifyOTP?.success) {
+        toast.success(verifyOTP?.message)
+        sessionStorage.setItem("accessToken", verifyOTP?.data?.accessToken);
+        navigation.push("/set-new-password")
+      }
+
     } catch (err) {
       console.error("OTP verification error:", err);
       setError("An unexpected error occurred. Please try again.");
@@ -105,9 +110,8 @@ export default function OtpVerificationPage() {
       <div
         className="hidden lg:flex w-1/2 items-center justify-center p-8 bg-cover bg-center"
         style={{
-          backgroundImage: `url(${
-            "/arkive-image.png" // Using the provided image URL
-          })`,
+          backgroundImage: `url(${"/arkive-image.png" // Using the provided image URL
+            })`,
           // filter: "blur(4px)", // Apply blur effect
           // WebkitFilter: "blur(4px)", // For Safari
         }}
@@ -189,9 +193,8 @@ export default function OtpVerificationPage() {
                 {/* Verify Button */}
                 <button
                   type="submit"
-                  className={`w-full h-10 mx-auto mt-4 bg-[#FFF] text-[#23272E] rounded-md text-sm font-normal font-[Inter] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex justify-center items-center transition duration-300 ease-in-out  ${
-                    loading ? "opacity-70 cursor-not-allowed" : ""
-                  }`}
+                  className={`w-full h-10 mx-auto mt-4 bg-[#FFF] text-[#23272E] rounded-md text-sm font-normal font-[Inter] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex justify-center items-center transition duration-300 ease-in-out  ${loading ? "opacity-70 cursor-not-allowed" : ""
+                    }`}
                   disabled={loading}
                 >
                   {loading ? "Verifying..." : "Verify"}

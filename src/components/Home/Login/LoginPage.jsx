@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import Image from "next/image";
+import { apiRequest } from "@/app/lib/api";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -11,6 +13,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false); // New state for password visibility
+  const navigation = useRouter()
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,44 +37,19 @@ export default function LoginPage() {
     }
 
     // --- Simulate API Call (Replace with your actual backend call) ---
-    console.log("Attempting to log in with:", { email, password, rememberMe });
+    // console.log("Attempting to log in with:", { email, password, rememberMe });
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate network delay
-
-      let success = false;
-      let redirectPath = "/";
-      let token = ""; // To store the token for setting in cookie
-
-      // --- Simulated Admin Login ---
-      if (email === "admin@example.com" && password === "admin123") {
-        console.log("Admin Login successful!");
-        toast.success("Admin Login Successful! (Simulated)");
-        token = "ADMIN_TOKEN_SECRET"; // Set admin token
-        redirectPath = "/admin"; // Redirect admin to /admin
-        success = true;
-      }
-      // --- Simulated Regular User Login ---
-      else if (email === "user@example.com" && password === "password123") {
-        console.log("User Login successful!");
-        toast.success("User Login Successful! (Simulated)");
-        token = "USER_TOKEN_SECRET"; // Set regular user token
-        redirectPath = "/admin";
-        success = true;
-      }
-      // --- Simulated Failed Login ---
-      else {
-        setError("Invalid email or password. (Simulated)");
-        toast.error("Invalid email or password. (Simulated)");
+      const payload = {
+        "data": {
+          email,
+          password
+        }
       }
 
-      if (success) {
-        document.cookie = `token=${token}; path=/; max-age=${
-          rememberMe ? 60 * 60 * 24 * 30 : 60 * 30
-        }; SameSite=Lax`;
-        // Use standard window navigation instead of Next.js router
-        window.location.href = redirectPath;
-      }
+      const loginData = await apiRequest("post", "/auth/login", payload);
+      toast.success(loginData?.message)
+      navigation.push("/admin")
     } catch (err) {
       console.error("Login error:", err);
       setError("An unexpected error occurred. Please try again.");
@@ -109,11 +87,11 @@ export default function LoginPage() {
             <div className="self-stretch flex flex-col justify-center items-center gap-[30px]">
               <div className="w-full  flex flex-col justify-start gap-[18px]">
                 <Image
-                  src="/ark-logo.png" 
+                  src="/ark-logo.png"
                   alt="Arkive"
-                  width={170} 
-                  height={150} 
-                  className="rounded-lg h-10" 
+                  width={170}
+                  height={150}
+                  className="rounded-lg h-10"
                 />
                 <p className="self-stretch text-start text-white text-[24px] font-semibold">
                   Welcome to Arkive
@@ -259,9 +237,8 @@ export default function LoginPage() {
                 {/* Sign In Button */}
                 <button
                   type="submit"
-                  className={`w-full h-10 mx-auto mt-4 bg-[#FFF] text-[#23272E] rounded-md text-sm font-normal font-[Inter] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex justify-center items-center transition duration-300 ease-in-out  ${
-                    loading ? "opacity-70 cursor-not-allowed" : ""
-                  }`}
+                  className={`w-full h-10 mx-auto mt-4 bg-[#FFF] text-[#23272E] rounded-md text-sm font-normal font-[Inter] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex justify-center items-center transition duration-300 ease-in-out  ${loading ? "opacity-70 cursor-not-allowed" : ""
+                    }`}
                   disabled={loading}
                 >
                   {loading ? "Signing In..." : "Sign In"}
