@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ChangePasswordForm from "./ChangePasswordForm";
+import { apiRequest } from "@/app/lib/api";
+import Cookies from "js-cookie";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -12,6 +14,22 @@ export default function ProfilePage() {
 
   const [profileImage, setProfileImage] = useState("/image/userImage.png");
   const fileInputRef = useRef(null);
+  const [adminInfo, setAdminInfo] = useState({})
+  const accessToken = Cookies.get("accessToken");
+
+  useEffect(() => {
+    const fetchAdminData = async () => {
+      const adminData = await apiRequest("get", "/admin", null, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
+      setAdminInfo(adminData?.data?.admin)
+    }
+    fetchAdminData()
+  }, [])
+
+  console.log(adminInfo)
 
   const handleBackClick = () => {
     router.back();
@@ -54,14 +72,25 @@ export default function ProfilePage() {
               onClick={handleImageClick}
             >
               <div className="w-[100px] h-[100px] rounded-full overflow-hidden">
-                <Image
-                  src={profileImage}
-                  alt="User Profile"
-                  width={100}
-                  height={100}
-                  className="rounded-full"
-                  style={{ objectFit: "cover" }}
-                />
+                {
+                  adminInfo?.profile ? <Image
+                    src={adminInfo?.profile}
+                    alt={adminInfo?.userName}
+                    width={100}
+                    height={100}
+                    className="rounded-full"
+                    style={{ objectFit: "cover" }}
+                  />
+                    :
+                    <Image
+                      src={profileImage}
+                      alt="User Profile"
+                      width={100}
+                      height={100}
+                      className="rounded-full"
+                      style={{ objectFit: "cover" }}
+                    />
+                }
               </div>
               <span className="absolute bottom-0 right-0 bg-blue-500 rounded-full p-1 border-2 border-black">
                 {/* Adjusted border color to black for contrast */}
@@ -81,30 +110,28 @@ export default function ProfilePage() {
             </div>
             <div className="flex flex-col gap-[12px]">
               <h2 className="text-[24px] font-bold mt-3 text-white">
-                Lukas Wagner
+                {adminInfo?.userName}
               </h2>{" "}
               {/* Changed text to white */}
-              <p className="text-white font-[400] text-xl">Admin</p>{" "}
+              <p className="text-white font-[400] text-xl">{adminInfo?.role}</p>{" "}
               {/* Changed text to white */}
             </div>
           </div>
           <div className="flex justify-center mb-6">
             <button
-              className={`py-2 px-6 text-[16px] font-semibold ${
-                activeTab === "editProfile"
-                  ? "border-b-2 border-[#DCF3FF] text-[#DCF3FF]"
-                  : "text-gray-400 hover:text-gray-200" // Adjusted text color for non-active tabs
-              }`}
+              className={`py-2 px-6 text-[16px] font-semibold ${activeTab === "editProfile"
+                ? "border-b-2 border-[#DCF3FF] text-[#DCF3FF]"
+                : "text-gray-400 hover:text-gray-200" // Adjusted text color for non-active tabs
+                }`}
               onClick={() => setActiveTab("editProfile")}
             >
               Edit Profile
             </button>
             <button
-              className={`py-2 px-6 text-[16px] font-semibold ${
-                activeTab === "changePassword"
-                  ? "border-b-2 border-[#DCF3FF] text-[#DCF3FF]"
-                  : "text-gray-400 hover:text-gray-200" // Adjusted text color for non-active tabs
-              }`}
+              className={`py-2 px-6 text-[16px] font-semibold ${activeTab === "changePassword"
+                ? "border-b-2 border-[#DCF3FF] text-[#DCF3FF]"
+                : "text-gray-400 hover:text-gray-200" // Adjusted text color for non-active tabs
+                }`}
               onClick={() => setActiveTab("changePassword")}
             >
               Change Password
@@ -134,7 +161,7 @@ export default function ProfilePage() {
                     id="fullName"
                     // Changed text and background of input for dark theme
                     className="shadow appearance-none rounded w-full h-[50px] py-3 px-4 text-gray-300 leading-tight focus:outline-none focus:shadow-outline border border-gray-700 "
-                    defaultValue="Lukas Wagner"
+                    defaultValue={adminInfo?.userName}
                   />
                 </div>
                 <div className="mb-4">
@@ -149,7 +176,8 @@ export default function ProfilePage() {
                     id="email"
                     // Changed text and background of input for dark theme
                     className="shadow appearance-none rounded w-full h-[50px] py-3 px-4 text-gray-300 leading-tight focus:outline-none focus:shadow-outline border border-gray-700 "
-                    defaultValue="lukas.wagner@example.com"
+                    defaultValue={adminInfo?.email}
+                    readOnly
                   />
                 </div>
                 <div className="mb-4">
@@ -164,7 +192,7 @@ export default function ProfilePage() {
                     id="contactNo"
                     // Changed text and background of input for dark theme
                     className="shadow appearance-none rounded w-full h-[50px] py-3 px-4 text-gray-300 leading-tight focus:outline-none focus:shadow-outline border border-gray-700 "
-                    defaultValue="+1234567890"
+                    defaultValue={adminInfo?.mobile}
                   />
                 </div>
                 <div className="flex items-center justify-center mt-6">

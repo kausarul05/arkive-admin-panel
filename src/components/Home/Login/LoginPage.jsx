@@ -5,6 +5,7 @@ import toast, { Toaster } from "react-hot-toast";
 import Image from "next/image";
 import { apiRequest } from "@/app/lib/api";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -48,12 +49,17 @@ export default function LoginPage() {
       }
 
       const loginData = await apiRequest("post", "/auth/login", payload);
-      toast.success(loginData?.message)
-      navigation.push("/admin")
+      if (loginData?.success) {
+        console.log("testsa")
+        Cookies.set("accessToken", loginData.data.accessToken, { expires: 7 });
+        Cookies.set("refreshToken", loginData.data.refreshToken, { expires: 7 });
+        toast.success(loginData?.message)
+        navigation.push("/admin")
+      }
     } catch (err) {
       console.error("Login error:", err);
       setError("An unexpected error occurred. Please try again.");
-      toast.error("An unexpected error occurred. Please try again.");
+      toast.error(err.message);
     } finally {
       setLoading(false); // End loading state
     }

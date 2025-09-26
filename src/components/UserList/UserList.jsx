@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast'; // Import toast and Toaster
+import { apiRequest } from "@/app/lib/api";
+import Cookies from "js-cookie";
 
 // AvatarImage client component for fallback avatar
 function AvatarImage({ src, alt }) {
@@ -24,132 +26,9 @@ function AvatarImage({ src, alt }) {
 export default function UserList() {
   const router = useRouter();
 
-  // Initial user data with added 'role'
-  const initialUsers = [
-    {
-      id: "5089",
-      customer: {
-        name: "Jane Cooper",
-        avatar: "https://images.pexels.com/photos/1250655/pexels-photo-1250655.jpeg",
-      },
-      joinDate: "6 April, 2023",
-      status: "Active",
-      email: "jane.cooper@example.com",
-      phone: "664 333 224",
-      role: "User", // Added role
-    },
-    {
-      id: "5090",
-      customer: {
-        name: "Jerome Bell",
-        avatar: "https://placehold.co/40x40/33FF57/FFFFFF?text=JB",
-      },
-      joinDate: "6 April, 2023",
-      status: "Blocked",
-      email: "jerome.bell@example.com",
-      phone: "123 456 789",
-      role: "Service Provider", // Added role
-    },
-    {
-      id: "5091",
-      customer: {
-        name: "Jenny Wilson",
-        avatar: "https://placehold.co/40x40/5733FF/FFFFFF?text=JW",
-      },
-      joinDate: "6 April, 2023",
-      status: "Active",
-      email: "jenny.wilson@example.com",
-      phone: "987 654 321",
-      role: "User", // Added role
-    },
-    {
-      id: "5092",
-      customer: {
-        name: "Ralph Edwards",
-        avatar: "https://placehold.co/40x40/FF33A1/FFFFFF?text=RE",
-      },
-      joinDate: "6 April, 2023",
-      status: "Blocked",
-      email: "ralph.edwards@example.com",
-      phone: "555 123 456",
-      role: "Service Provider", // Added role
-    },
-    {
-      id: "5093",
-      customer: {
-        name: "Alice Johnson",
-        avatar: "https://placehold.co/40x40/33A1FF/FFFFFF?text=AJ",
-      },
-      joinDate: "7 April, 2023",
-      status: "Active",
-      email: "alice.j@example.com",
-      phone: "111 222 333",
-      role: "User", // Added role
-    },
-    {
-      id: "5094",
-      customer: {
-        name: "Bob Williams",
-        avatar: "https://placehold.co/40x40/A133FF/FFFFFF?text=BW",
-      },
-      joinDate: "7 April, 2023",
-      status: "Blocked",
-      email: "bob.w@example.com",
-      phone: "444 555 666",
-      role: "Service Provider", // Added role
-    },
-    {
-      id: "5095",
-      customer: {
-        name: "Charlie Brown",
-        avatar: "https://placehold.co/40x40/FFC133/FFFFFF?text=CB",
-      },
-      joinDate: "8 April, 2023",
-      status: "Active",
-      email: "charlie.b@example.com",
-      phone: "777 888 999",
-      role: "User", // Added role
-    },
-    {
-      id: "5096",
-      customer: {
-        name: "Diana Miller",
-        avatar: "https://placehold.co/40x40/33FFC1/FFFFFF?text=DM",
-      },
-      joinDate: "8 April, 2023",
-      status: "Blocked",
-      email: "diana.m@example.com",
-      phone: "222 333 444",
-      role: "Service Provider", // Added role
-    },
-    {
-      id: "5097",
-      customer: {
-        name: "Eve Davis",
-        avatar: "https://placehold.co/40x40/C133FF/FFFFFF?text=ED",
-      },
-      joinDate: "9 April, 2023",
-      status: "Active",
-      email: "eve.d@example.com",
-      phone: "999 000 111",
-      role: "User", // Added role
-    },
-    {
-      id: "5098",
-      customer: {
-        name: "Frank White",
-        avatar: "https://placehold.co/40x40/FF3366/FFFFFF?text=FW",
-      },
-      joinDate: "9 April, 2023",
-      status: "Blocked",
-      email: "frank.w@example.com",
-      phone: "333 444 555",
-      role: "Service Provider", // Added role
-    },
-  ];
 
   // State for all functionalities
-  const [users, setUsers] = useState(initialUsers);
+  const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [dateRange, setDateRange] = useState({ from: "", to: "" });
@@ -162,11 +41,53 @@ export default function UserList() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [userToUnblock, setUserToUnblock] = useState(null);
 
+  const accessToken = Cookies.get("accessToken")
+
   // Helper: parse date string to Date object
   function parseDate(str) {
     const [day, monthStr, year] = str.replace(",", "").split(" ");
     return new Date(`${year}-${("0" + (new Date(`${monthStr} 1`).getMonth() + 1)).slice(-2)}-${("0" + day).slice(-2)}`);
   }
+
+  // --- Fetch users from API ---
+  useEffect(() => {
+    async function fetchUsers() {
+      try {
+        const response = await apiRequest("get", "/user", null, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        });
+        if (response.success) {
+          const apiUsers = response.data.user.map(u => ({
+            id: u.id,
+            customer: {
+              name: u.userName,
+              avatar: u.profile || `https://placehold.co/40x40/CCCCCC/000000?text=${u.firstName[0]}${u.lastName[0]}`
+            },
+            joinDate: new Date(u.createdAt).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric'
+            }),
+            status: u.isDeleted ? "Blocked" : "Active",
+            email: u.email,
+            phone: u.mobile,
+            role: u.role
+          }));
+          setUsers(apiUsers);
+        } else {
+          toast.error("Failed to fetch users");
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("Something went wrong while fetching users");
+      } finally {
+        // setLoading(false);
+      }
+    }
+    fetchUsers()
+  }, [])
 
   // Filtered users
   let filtered = users.filter((u) => {
@@ -274,16 +195,43 @@ export default function UserList() {
     setUserToUnblock(null);
   };
 
-  const handleBlockUnblockClick = (user) => {
-    // Only show the original confirmation modal if trying to unblock
-    if (user.status === "Blocked") {
-      setUserToUnblock(user);
-      setShowConfirmation(true);
-    } else {
-      // If blocking, proceed directly and use hot-toast for notification
-      handleBlockUnblock(user);
+  const handleBlockUnblockClick = async (user) => {
+    try {
+      const accessToken = Cookies.get("accessToken");
+
+      if (!accessToken) {
+        toast.error("Unauthorized. Please login again.");
+        return;
+      }
+
+      // API hit
+      const response = await apiRequest("DELETE", `/user/${user.id}`, {
+        data: {
+          isDeleted: user.status === "Active" ? true : false, 
+        },
+      }, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (response.success) {
+        const newStatus = user.status === "Active" ? "Blocked" : "Active";
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === user.id ? { ...u, status: newStatus } : u
+          )
+        );
+        toast.success(`${user.customer.name} has been ${newStatus.toLowerCase()}!`);
+      } else {
+        toast.error("Failed to update user status");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong while updating user status");
     }
   };
+
 
   const handleCancelUnblock = () => {
     setShowConfirmation(false);
