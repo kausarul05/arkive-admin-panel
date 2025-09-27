@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import ChangePasswordForm from "./ChangePasswordForm";
 import { apiRequest } from "@/app/lib/api";
 import Cookies from "js-cookie";
+import toast from "react-hot-toast";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -29,8 +30,6 @@ export default function ProfilePage() {
     fetchAdminData()
   }, [])
 
-  console.log(adminInfo)
-
   const handleBackClick = () => {
     router.back();
   };
@@ -46,6 +45,35 @@ export default function ProfilePage() {
   const handleImageClick = () => {
     fileInputRef.current.click();
   };
+
+  // Save Changes submit handler
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const updatedData = {
+      "data": {
+        userName: e.target.fullName.value,
+        mobile: e.target.contactNo.value,
+      }
+    };
+
+    try {
+      const res = await apiRequest("patch", "/admin", updatedData, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      if (res?.success) {
+        toast.success(res.message);
+        setAdminInfo(res.data.admin);
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error(error.message);
+    }
+  };
+
+  
 
   return (
     // Main container changed to black background and white text
@@ -148,7 +176,7 @@ export default function ProfilePage() {
 
           {activeTab === "editProfile" && (
             <div className="p-6 flex flex-col items-center">
-              <form className="w-full max-w-[982px] ">
+              <form className="w-full max-w-[982px]" onSubmit={handleSubmit}>
                 <div className="mb-4">
                   <label
                     htmlFor="fullName"

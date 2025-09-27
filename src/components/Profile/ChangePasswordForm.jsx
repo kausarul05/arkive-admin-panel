@@ -1,6 +1,9 @@
 "use client";
 
+import { apiRequest } from "@/app/lib/api";
+import Cookies from "js-cookie";
 import React, { useState } from "react";
+import toast from "react-hot-toast";
 
 export default function ChangePasswordForm() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -8,28 +11,46 @@ export default function ChangePasswordForm() {
   const [confirmedPassword, setConfirmedPassword] = useState("");
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState(""); // 'success' or 'error'
+  const accessToken = Cookies.get("accessToken");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage(""); // Clear previous messages
-    setMessageType("");
+    // setLoading(true);
 
-    if (newPassword !== confirmedPassword) {
-      setMessage("New password and confirmed password do not match.");
-      setMessageType("error");
+    if(newPassword !== confirmedPassword){
+      toast.error("Password do not match")
       return;
     }
 
-    // In a real application, you would send this data to your backend API
-    // For demonstration purposes, we'll simulate a successful change
-    setTimeout(() => {
-      setMessage("Password changed successfully!");
-      setMessageType("success");
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmedPassword("");
-    }, 1000);
+    const payload = {
+      "data": {
+        oldPassword : currentPassword,
+        newPassword : confirmedPassword,
+      },
+    };
+
+    try {
+      const res = await apiRequest("patch", "/auth/update_password", payload, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      console.log("res", res)
+
+      if (res?.success) {
+        toast.success("Password updated successfully!");
+        setOldPassword("");
+        setNewPassword("");
+      }
+    } catch (error) {
+      console.error("Error updating password:", error);
+      toast.success("Failed to update password!");
+    } finally {
+      // setLoading(false);
+    }
   };
+
 
   return (
     <form
@@ -91,9 +112,8 @@ export default function ChangePasswordForm() {
       </div>
       {message && (
         <p
-          className={`text-center mb-4 ${
-            messageType === "success" ? "text-green-400" : "text-red-400" // Adjusted for dark theme
-          }`}
+          className={`text-center mb-4 ${messageType === "success" ? "text-green-400" : "text-red-400" // Adjusted for dark theme
+            }`}
         >
           {message}
         </p>
