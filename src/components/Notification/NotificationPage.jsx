@@ -14,7 +14,7 @@ const NotificationPage = ({ onBackClick, isAdmin = true }) => {
   // Use the socket hook instead of local mock data
   const [allNotifications, setAllNotifications] = useAdminSocket(isAdmin);
 
-  console.log("All Notification", allNotifications)
+  // console.log("All Notification", allNotifications)
 
   const now = useMemo(() => new Date(), []);
 

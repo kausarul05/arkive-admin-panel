@@ -23,7 +23,7 @@ const useAdminSocket = (isAdmin = false) => {
                     Authorization: `Bearer ${accessToken}`,
                 }
             });
-            console.log("data", res?.data?.notification)
+            // console.log("data", res?.data?.notification)
             if (!res.success || !Array.isArray(res?.data?.notification)) {
                 toast.error("Failed to fetch notifications");
                 return;
