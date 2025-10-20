@@ -24,7 +24,6 @@ const NotificationPage = ({ onBackClick, isAdmin = true }) => {
       (now.getTime() - notificationDate.getTime()) / (1000 * 60)
     );
     const diffHours = Math.round(diffMinutes / 60);
-
     if (diffMinutes < 60) {
       return `${diffMinutes} min ago`;
     } else if (diffHours < 24) {
