@@ -1,6 +1,6 @@
 "use client"; // This directive is required for client-side functionality in App Router components
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import Image from "next/image";
 import { apiRequest } from "@/app/lib/api";
@@ -14,8 +14,13 @@ export default function App() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const accessToken = sessionStorage.getItem("accessToken");
+  const [accessToken, setAccessToken] = useState("");
   const navigation = useRouter()
+
+  useEffect(() => {
+    const token = sessionStorage.getItem("accessToken");
+    if (token) setAccessToken(token);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

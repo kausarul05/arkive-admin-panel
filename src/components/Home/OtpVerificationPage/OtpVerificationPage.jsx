@@ -7,7 +7,7 @@ import React, { useState, useRef, useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
 
 export default function OtpVerificationPage() {
-  const emailValue = sessionStorage.getItem("email");
+  const [emailValue, setEmailValue] = useState("");
   // Changed to App for default export
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
@@ -16,6 +16,11 @@ export default function OtpVerificationPage() {
   const [canResend, setCanResend] = useState(false);
   const otpInputRefs = useRef([]);
   const navigation = useRouter()
+
+  useEffect(() => {
+    const storedEmail = sessionStorage.getItem("email");
+    if (storedEmail) setEmailValue(storedEmail);
+  }, []);
 
   useEffect(() => {
     let timer;
