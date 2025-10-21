@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -21,6 +21,8 @@ import {
 import Image from "next/image";
 import dreckks from "../../public/tika-food.svg"; // This import seems unused
 import barss from "../../public/icon/bars.png"; // This import seems unused
+import { apiRequest } from "@/app/lib/api";
+import Cookies from "js-cookie";
 
 const navItems = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -61,6 +63,8 @@ const navItems = [
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const router = useRouter();
+  const [adminInfo, setAdminInfo] = useState({});
+  const accessToken = Cookies.get("accessToken");
 
   const handleLogout = () => {
     // Implement logout functionality here
@@ -70,12 +74,25 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   };
   const pathname = usePathname();
 
+  useEffect(() => {
+    const fetchAdminData = async () => {
+      const adminData = await apiRequest("get", "/admin", null, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
+      setAdminInfo(adminData?.data?.admin)
+    }
+    fetchAdminData()
+  }, [])
+
+
+
   return (
     <>
       <aside
-        className={`fixed top-0 left-0 h-full bg-[#2D2D2D] text-white shadow-lg z-50 transform transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0 w-64" : "-translate-x-full w-64"
-        }`}
+        className={`fixed top-0 left-0 h-full bg-[#2D2D2D] text-white shadow-lg z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0 w-64" : "-translate-x-full w-64"
+          }`}
       >
         <div className="flex flex-col h-full justify-between border-r border-[#D6D6D6]">
           {/* Logo & Close Button */}
@@ -124,9 +141,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                   <Link
                     key={name}
                     href={href}
-                    className={`flex items-center py-3 px-4 w-[218px] mx-auto  transition-all rounded-[11px] ${
-                      isActive ? "bg-[#FFFF] text-[#131123]" : ""
-                    }`}
+                    className={`flex items-center py-3 px-4 w-[218px] mx-auto  transition-all rounded-[11px] ${isActive ? "bg-[#FFFF] text-[#131123]" : ""
+                      }`}
                   >
                     <Icon
                       className="w-5 h-5 mr-3"
@@ -144,9 +160,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 <Link
                   key={name}
                   href={href}
-                  className={`flex items-center py-3 px-4 w-[218px] mx-auto  transition-all rounded-[11px] ${
-                    isActive ? "bg-[#FFFF] text-[#131123]" : ""
-                  }`}
+                  className={`flex items-center py-3 px-4 w-[218px] mx-auto  transition-all rounded-[11px] ${isActive ? "bg-[#FFFF] text-[#131123]" : ""
+                    }`}
                 >
                   <Icon className="w-5 h-5 mr-3" />
                   <span className="font-medium text-[16px]">{name}</span>
@@ -168,8 +183,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               />
             </div>
             <div>
-              <p className="text-white text-sm font-medium">Maietry Cruz</p>
-              <p className="text-gray-400 text-xs">anita@commerce.com</p>
+              <p className="text-white text-sm font-medium">{adminInfo?.userName ? adminInfo?.userName : "N/A"}</p>
+              <p className="text-gray-400 text-xs">{adminInfo?.email ? adminInfo?.email : "N/A"}</p>
             </div>
           </div>
 
